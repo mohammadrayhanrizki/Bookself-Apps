@@ -53,6 +53,20 @@
       </form>
     </section>
 
+        <section class="sort-section">
+            <form id="sortBookForm">
+                <label for="sortOption">Urutkan berdasarkan</label>
+                <select id="sortOption">
+                    <option value="default">Default</option>
+                    <option value="title-asc">Judul (A-Z)</option>
+                    <option value="title-desc">Judul (Z-A)</option>
+                    <option value="year-desc">Tahun (Terbaru)</option>
+                    <option value="year-asc">Tahun (Terlama)</option>
+                </select>
+            </form>
+        </section>
+
+
     <section class="bookshelf">
       <h2>Belum Selesai Dibaca <span id="incompleteBookCount" class="book-count"></span></h2>
       <div id="incompleteBookshelfList" class="book-list"></div>
