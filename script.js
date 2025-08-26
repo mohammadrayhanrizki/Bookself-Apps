@@ -54,7 +54,6 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById(modalId).classList.remove('show');
     }
 
-    // Menutup modal saat tombol 'Batal' atau 'X' diklik
     document.querySelectorAll('[data-modal-close]').forEach(button => {
         button.addEventListener('click', () => {
             closeModal(button.dataset.modalClose);
@@ -62,6 +61,21 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // --- Logika Inti Aplikasi ---
+    function animateAndMoveBook(bookId, isCompleteStatus) {
+        const bookElement = document.getElementById(`book-${bookId}`);
+        if (bookElement) {
+            bookElement.classList.add('fade-out');
+            setTimeout(() => {
+                const book = findBook(bookId);
+                if (book) {
+                    book.isComplete = isCompleteStatus;
+                    document.dispatchEvent(new Event(RENDER_EVENT));
+                    saveData();
+                }
+            }, 400);
+        }
+    }
+
     function makeBookElement(bookObject) {
         const bookItem = document.createElement('article');
         bookItem.classList.add('book-item');
@@ -103,10 +117,7 @@ document.addEventListener('DOMContentLoaded', function () {
             undoButton.classList.add('yellow');
             undoButton.innerText = 'Baca Ulang';
             undoButton.addEventListener('click', () => {
-                const book = findBook(bookObject.id);
-                book.isComplete = false;
-                document.dispatchEvent(new Event(RENDER_EVENT));
-                saveData();
+                animateAndMoveBook(bookObject.id, false);
             });
             actionContainer.append(undoButton, editButton, deleteButton);
         } else {
@@ -114,10 +125,7 @@ document.addEventListener('DOMContentLoaded', function () {
             completeButton.classList.add('green');
             completeButton.innerText = 'Selesai';
             completeButton.addEventListener('click', () => {
-                const book = findBook(bookObject.id);
-                book.isComplete = true;
-                document.dispatchEvent(new Event(RENDER_EVENT));
-                saveData();
+                animateAndMoveBook(bookObject.id, true);
             });
             actionContainer.append(completeButton, editButton, deleteButton);
         }
@@ -151,39 +159,41 @@ document.addEventListener('DOMContentLoaded', function () {
         event.preventDefault();
         const bookId = document.getElementById('editBookId').value;
         const book = findBook(Number(bookId));
-        book.title = document.getElementById('editBookTitle').value;
-        book.author = document.getElementById('editBookAuthor').value;
-        book.year = Number(document.getElementById('editBookYear').value);
-        
-        document.dispatchEvent(new Event(RENDER_EVENT));
-        saveData();
+        if (book) {
+            book.title = document.getElementById('editBookTitle').value;
+            book.author = document.getElementById('editBookAuthor').value;
+            book.year = Number(document.getElementById('editBookYear').value);
+            document.dispatchEvent(new Event(RENDER_EVENT));
+            saveData();
+        }
         closeModal('editBookModal');
     });
 
     confirmDeleteButton.addEventListener('click', () => {
-        const bookId = confirmDeleteButton.dataset.bookId;
-        const bookIndex = findBookIndex(Number(bookId));
-        if (bookIndex !== -1) {
-            books.splice(bookIndex, 1);
-            document.dispatchEvent(new Event(RENDER_EVENT));
-            saveData();
+        const bookId = Number(confirmDeleteButton.dataset.bookId);
+        const bookElement = document.getElementById(`book-${bookId}`);
+
+        if (bookElement) {
+            bookElement.classList.add('fade-out');
+            setTimeout(() => {
+                const bookIndex = findBookIndex(bookId);
+                if (bookIndex !== -1) {
+                    books.splice(bookIndex, 1);
+                    document.dispatchEvent(new Event(RENDER_EVENT));
+                    saveData();
+                }
+            }, 400);
         }
         closeModal('confirmDeleteModal');
     });
 
-// script.js
-
     // --- Render Event ---
     document.addEventListener(RENDER_EVENT, () => {
-        // Kosongkan rak buku
         incompleteBookshelfList.innerHTML = '';
         completeBookshelfList.innerHTML = '';
-
-        // Ambil query pencarian
         const query = searchBookTitle.value.toLowerCase();
         const filteredBooks = books.filter(book => book.title.toLowerCase().includes(query));
 
-        // Inisialisasi hitungan
         let incompleteCount = 0;
         let completeCount = 0;
 
@@ -191,16 +201,59 @@ document.addEventListener('DOMContentLoaded', function () {
             const bookElement = makeBookElement(bookItem);
             if (!bookItem.isComplete) {
                 incompleteBookshelfList.append(bookElement);
-                incompleteCount++; // Tambah hitungan di sini 
+                incompleteCount++;
             } else {
                 completeBookshelfList.append(bookElement);
-                completeCount++; // Tambah hitungan di sini
+                completeCount++;
             }
+            
+            setTimeout(() => {
+                bookElement.classList.add('show');
+            }, 10);
         }
         
-        // Perbarui teks hitungan di DOM
         document.getElementById('incompleteBookCount').innerText = `(${incompleteCount})`;
         document.getElementById('completeBookCount').innerText = `(${completeCount})`;
+    });
+
+// script.js
+
+    // --- Logika Dark Mode ---
+    const darkModeToggles = document.querySelectorAll('.dark-mode-toggle'); // Pilih SEMUA tombol
+    const body = document.body;
+    const DARK_MODE_KEY = 'DARK_MODE_ENABLED';
+
+    function setDarkModeIcon(isDarkMode) {
+        darkModeToggles.forEach(toggle => {
+            toggle.innerText = isDarkMode ? '☀️' : '🌙';
+        });
+    }
+
+    function enableDarkMode() {
+        body.classList.add('dark-mode');
+        setDarkModeIcon(true);
+        localStorage.setItem(DARK_MODE_KEY, 'true');
+    }
+
+    function disableDarkMode() {
+        body.classList.remove('dark-mode');
+        setDarkModeIcon(false);
+        localStorage.setItem(DARK_MODE_KEY, 'false');
+    }
+
+    if (localStorage.getItem(DARK_MODE_KEY) === 'true') {
+        enableDarkMode();
+    }
+
+    // Tambahkan event listener ke setiap tombol
+    darkModeToggles.forEach(toggle => {
+        toggle.addEventListener('click', () => {
+            if (body.classList.contains('dark-mode')) {
+                disableDarkMode();
+            } else {
+                enableDarkMode();
+            }
+        });
     });
 
     // --- Inisialisasi ---
