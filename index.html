@@ -5,11 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bookshelf Apps</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
     <header class="header">
-        <h1>Bookshelf Apps 📚</h1>
+        <h1>Perpustakaan SMK NEGERI 1 SURABAYA 📚</h1>
         <p>Atur dan kelola buku yang sedang dan telah kamu baca.</p>
     </header>
 
@@ -41,24 +44,61 @@
             <h2>Cari Buku</h2>
             <form id="searchBookForm">
                 <input id="searchBookTitle" type="text" placeholder="Ketik judul buku...">
-                <button id="searchSubmit" type="submit">Cari</button>
             </form>
         </section>
 
+<section class="bookshelf">
+            <h2>Belum Selesai Dibaca <span id="incompleteBookCount" class="book-count"></span></h2>
+            <div id="incompleteBookshelfList" class="book-list"></div>
+        </section>
+
         <section class="bookshelf">
-            <h2>Belum Selesai Dibaca</h2>
-            <div id="incompleteBookshelfList" class="book-list">
-                </div>
+            <h2>Selesai Dibaca <span id="completeBookCount" class="book-count"></span></h2>
+            <div id="completeBookshelfList" class="book-list"></div>
         </section>
 
         <section class="bookshelf">
             <h2>Selesai Dibaca</h2>
-            <div id="completeBookshelfList" class="book-list">
-                </div>
+            <div id="completeBookshelfList" class="book-list"></div>
         </section>
     </main>
 
-    <script src="script.js"></script>
+    <div id="editBookModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Edit Buku</h2>
+            <form id="editBookForm">
+                <input type="hidden" id="editBookId">
+                <div class="input-group">
+                    <label for="editBookTitle">Judul</label>
+                    <input id="editBookTitle" type="text" required>
+                </div>
+                <div class="input-group">
+                    <label for="editBookAuthor">Penulis</label>
+                    <input id="editBookAuthor" type="text" required>
+                </div>
+                <div class="input-group">
+                    <label for="editBookYear">Tahun</label>
+                    <input id="editBookYear" type="number" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit" class="btn-save">Simpan Perubahan</button>
+                    <button type="button" class="btn-cancel" data-modal-close="editBookModal">Batal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="confirmDeleteModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Konfirmasi Hapus</h2>
+            <p>Apakah Anda yakin ingin menghapus buku ini?</p>
+            <div class="modal-buttons">
+                <button id="confirmDeleteButton" class="btn-delete">Ya, Hapus</button>
+                <button type="button" class="btn-cancel" data-modal-close="confirmDeleteModal">Batal</button>
+            </div>
+        </div>
+    </div>
 
+    <script src="script.js"></script>
 </body>
 </html>
