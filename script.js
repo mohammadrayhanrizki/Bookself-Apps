@@ -1,23 +1,45 @@
 document.addEventListener("DOMContentLoaded", function () {
+  // ===================================================================
+  // VARIABEL GLOBAL & KONSTANTA
+  // ===================================================================
   const books = [];
   const RENDER_EVENT = "render-books";
   const STORAGE_KEY = "BOOKSHELF_APPS";
   const DARK_MODE_KEY = "DARK_MODE_ENABLED";
 
-  // --- Selektor DOM ---
+  // ===================================================================
+  // SELEKTOR DOM
+  // ===================================================================
   const inputBookForm = document.getElementById("inputBookForm");
   const searchBookTitle = document.getElementById("searchBookTitle");
-  const sortOption = document.getElementById("sortOption"); // <-- BARU
+  const sortOption = document.getElementById("sortOption");
   const incompleteBookshelfList = document.getElementById("incompleteBookshelfList");
   const completeBookshelfList = document.getElementById("completeBookshelfList");
   const editBookForm = document.getElementById("editBookForm");
   const confirmDeleteButton = document.getElementById("confirmDeleteButton");
   const darkModeToggle = document.getElementById("floatingDarkModeToggle");
   const body = document.body;
+  const bookSubmitButton = document.getElementById("bookSubmit");
 
   // ===================================================================
   // FUNGSI-FUNGSI APLIKASI
   // ===================================================================
+
+  async function getBookCover(title) {
+    try {
+      const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(title)}&maxResults=1`);
+      const data = await response.json();
+      if (data.items && data.items.length > 0) {
+        const bookData = data.items[0].volumeInfo;
+        // Gunakan gambar resolusi lebih tinggi jika ada, jika tidak pakai thumbnail
+        return bookData.imageLinks?.medium || bookData.imageLinks?.thumbnail || "placeholder.png";
+      }
+      return "placeholder.png";
+    } catch (error) {
+      console.error("Gagal mengambil sampul buku:", error);
+      return "placeholder.png";
+    }
+  }
 
   function saveData() {
     if (typeof Storage !== "undefined") {
@@ -83,25 +105,22 @@ document.addEventListener("DOMContentLoaded", function () {
     bookItem.setAttribute("id", `book-${bookObject.id}`);
     bookItem.setAttribute("draggable", true);
 
-    bookItem.addEventListener("dragstart", (event) => {
-      event.dataTransfer.setData("text/plain", bookObject.id);
-      setTimeout(() => {
-        bookItem.classList.add("dragging");
-      }, 0);
-    });
+    const coverImage = document.createElement("img");
+    coverImage.classList.add("book-cover");
+    coverImage.src = bookObject.cover || "placeholder.png";
+    coverImage.alt = `Sampul buku ${bookObject.title}`;
 
-    bookItem.addEventListener("dragend", () => {
-      bookItem.classList.remove("dragging");
-    });
+    const bookDetails = document.createElement("div");
+    bookDetails.classList.add("book-details");
 
-    const textContainer = document.createElement("div");
     const bookTitle = document.createElement("h3");
     bookTitle.innerText = bookObject.title;
+
     const bookAuthor = document.createElement("p");
     bookAuthor.innerText = `Penulis: ${bookObject.author}`;
+
     const bookYear = document.createElement("p");
     bookYear.innerText = `Tahun: ${bookObject.year}`;
-    textContainer.append(bookTitle, bookAuthor, bookYear);
 
     const actionContainer = document.createElement("div");
     actionContainer.classList.add("action");
@@ -143,7 +162,19 @@ document.addEventListener("DOMContentLoaded", function () {
       actionContainer.append(completeButton, editButton, deleteButton);
     }
 
-    bookItem.append(textContainer, actionContainer);
+    bookDetails.append(bookTitle, bookAuthor, bookYear, actionContainer);
+    bookItem.append(coverImage, bookDetails);
+
+    bookItem.addEventListener("dragstart", (event) => {
+      event.dataTransfer.setData("text/plain", bookObject.id);
+      setTimeout(() => {
+        bookItem.classList.add("dragging");
+      }, 0);
+    });
+    bookItem.addEventListener("dragend", () => {
+      bookItem.classList.remove("dragging");
+    });
+
     return bookItem;
   }
 
@@ -151,26 +182,31 @@ document.addEventListener("DOMContentLoaded", function () {
   // EVENT LISTENERS
   // ===================================================================
 
-  inputBookForm.addEventListener("submit", (event) => {
+  inputBookForm.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const newBook = {
-      id: +new Date(),
-      title: document.getElementById("inputBookTitle").value,
-      author: document.getElementById("inputBookAuthor").value,
-      year: Number(document.getElementById("inputBookYear").value),
-      isComplete: document.getElementById("inputBookIsComplete").checked,
-    };
+    bookSubmitButton.innerText = "Mencari sampul...";
+    bookSubmitButton.disabled = true;
+
+    const title = document.getElementById("inputBookTitle").value;
+    const author = document.getElementById("inputBookAuthor").value;
+    const year = document.getElementById("inputBookYear").value;
+    const isComplete = document.getElementById("inputBookIsComplete").checked;
+    const cover = await getBookCover(title);
+
+    const newBook = { id: +new Date(), title, author, year: Number(year), isComplete, cover };
     books.push(newBook);
     saveData();
     document.dispatchEvent(new Event(RENDER_EVENT));
+
     inputBookForm.reset();
+    bookSubmitButton.innerText = "Tambahkan ke Rak";
+    bookSubmitButton.disabled = false;
   });
 
   searchBookTitle.addEventListener("input", () => {
     document.dispatchEvent(new Event(RENDER_EVENT));
   });
 
-  // **EVENT LISTENER BARU UNTUK SORTING**
   sortOption.addEventListener("change", () => {
     document.dispatchEvent(new Event(RENDER_EVENT));
   });
@@ -211,17 +247,14 @@ document.addEventListener("DOMContentLoaded", function () {
       event.preventDefault();
       shelf.classList.add("drag-over");
     });
-
     shelf.addEventListener("dragleave", () => {
       shelf.classList.remove("drag-over");
     });
-
     shelf.addEventListener("drop", (event) => {
       event.preventDefault();
       shelf.classList.remove("drag-over");
       const bookId = Number(event.dataTransfer.getData("text/plain"));
       const book = findBook(bookId);
-
       if (book) {
         const isDroppedOnCompletedShelf = shelf.id === "completeBookshelfList";
         if (book.isComplete !== isDroppedOnCompletedShelf) {
@@ -243,11 +276,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // **RENDER EVENT DIPERBARUI DENGAN LOGIKA SORTING**
   document.addEventListener(RENDER_EVENT, () => {
     const currentSortOption = sortOption.value;
-
-    // Langkah 1: Lakukan sorting pada array 'books'
     if (currentSortOption === "title-asc") {
       books.sort((a, b) => a.title.localeCompare(b.title));
     } else if (currentSortOption === "title-desc") {
@@ -258,7 +288,6 @@ document.addEventListener("DOMContentLoaded", function () {
       books.sort((a, b) => a.year - b.year);
     }
 
-    // Langkah 2: Lanjutkan ke filtering dan rendering
     incompleteBookshelfList.innerHTML = "";
     completeBookshelfList.innerHTML = "";
     const query = searchBookTitle.value.toLowerCase();
@@ -266,7 +295,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let incompleteCount = 0;
     let completeCount = 0;
-
     for (const bookItem of filteredBooks) {
       const bookElement = makeBookElement(bookItem);
       if (!bookItem.isComplete) {
@@ -280,15 +308,13 @@ document.addEventListener("DOMContentLoaded", function () {
         bookElement.classList.add("show");
       }, 10);
     }
-
     document.getElementById("incompleteBookCount").innerText = `(${incompleteCount})`;
     document.getElementById("completeBookCount").innerText = `(${completeCount})`;
   });
 
   // ===================================================================
-  // INISIALISASI
+  // INISIALISASI APLIKASI
   // ===================================================================
-
   if (localStorage.getItem(DARK_MODE_KEY) === "true") {
     enableDarkMode();
   }
