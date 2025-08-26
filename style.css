@@ -1,0 +1,177 @@
+/* Aturan Reset dan Global */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif, Arial, Helvetica;
+    background-color: #f3f4f6; /* Warna latar belakang netral */
+    color: #333;
+}
+
+/* Header */
+.header {
+    background-color: #1e3a8a; /* Biru tua */
+    color: white;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Konten Utama */
+main {
+    max-width: 800px;
+    margin: 30px auto; /* Tengah secara horizontal */
+    padding: 20px;
+}
+
+/* Styling untuk semua section */
+.input-section,
+.search-section,
+.bookshelf {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+h2 {
+    margin-bottom: 15px;
+    color: #1e3a8a;
+}
+
+/* Styling Form Input dan Pencarian */
+.input-group, .input-inline {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input[type="text"],
+input[type="number"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.input-inline {
+    display: flex;
+    align-items: center;
+}
+
+.input-inline label {
+    margin-left: 8px;
+    font-weight: normal;
+}
+
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#bookSubmit {
+    background-color: #1e3a8a; /* Biru tua */
+}
+
+#searchSubmit {
+    background-color: #166534; /* Hijau tua */
+    margin-top: 10px;
+}
+
+/* Styling untuk Rak dan Item Buku */
+.book-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.book-item {
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+}
+
+.book-item h3 {
+    margin-bottom: 5px;
+}
+
+.book-item p {
+    font-size: 14px;
+    color: #666;
+}
+
+.action {
+    display: flex;
+    gap: 10px;
+}
+
+.action button.green {
+    background-color: #16a34a; /* Hijau */
+}
+
+.action button.yellow {
+    background-color: #ca8a04; /* Kuning/Oranye */
+}
+
+.action button.red {
+    background-color: #dc2626; /* Merah */
+}
+
+
+/* =================================
+   MEDIA QUERIES (RESPONSIVE)
+   ================================= */
+
+/* Untuk Tablet */
+@media screen and (max-width: 768px) {
+    main {
+        padding: 15px;
+        margin: 20px 15px;
+    }
+
+    .input-section,
+    .search-section,
+    .bookshelf {
+        padding: 15px;
+    }
+}
+
+
+/* Untuk Smartphone */
+@media screen and (max-width: 576px) {
+    .header h1 {
+        font-size: 1.5rem; /* Mengecilkan ukuran judul utama */
+    }
+
+    .book-item {
+        flex-direction: column; /* Mengubah layout dari horizontal ke vertikal */
+        align-items: flex-start; /* Rata kiri */
+        gap: 10px;
+    }
+
+    .action {
+        width: 100%;
+        display: flex;
+        justify-content: flex-end; /* Tombol tetap di kanan */
+    }
+
+    .action button {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+}
